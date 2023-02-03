@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 internal class Program
 {
@@ -59,7 +60,7 @@ class Player
 
     public void ViewInventory()
     {
-        if (Inventory.Count == 0)
+        if (!Inventory.Any())
         {
             Console.WriteLine("Ваш инвентарь пустой!");
             return;
