@@ -10,22 +10,10 @@ internal class Program
         const string BuyProduct = "3";
         const string Exit = "4";
 
-        bool isWork = true;
-
-        Item bread = new Item("Хлеб", 35);
-        Item milk = new Item("Молоко", 65);
-        Item cheese = new Item("Сыр", 170);
-        Item sausage = new Item("Колбаса", 150);
-
         Seller seller = new Seller();
-        seller.Items.Add(bread);
-        seller.Items.Add(milk);
-        seller.Items.Add(cheese);
-        seller.Items.Add(sausage);
-
         Player player = new Player("forofonof", 5000);
 
-        Console.WriteLine("Добро пожаловать в магазин, что желаете купить?");
+        bool isWork = true;
 
         while (isWork)
         {
@@ -38,10 +26,10 @@ internal class Program
                     player.ViewInventory();
                     break;
                 case ShowInventory:
-                    seller.ShowProducts();
+                    seller.ShowAllProducts();
                     break;
                 case BuyProduct:
-                    seller.ProductSearch(seller, player);
+                    seller.TradeProducts(player);
                     break;
                 case Exit:
                     isWork= false;
@@ -56,11 +44,11 @@ internal class Program
 
 class Player
 {
-    public string Name { get; set; }
+    public string Name;
 
-    public List<Item> Inventory { get; set; }
+    public List<Item> Inventory;
 
-    public int Balance { get; set; }
+    public int Balance;
 
     public Player(string name, int balance)
     {
@@ -90,68 +78,69 @@ class Player
 
 class Seller
 {
-    public List<Item> Items { get; set; }
-
-    public Seller()
+    public void ShowAllProducts()
     {
-        Items = new List<Item>();
-    }
+        int minimumNumberItems = 0;
 
-    public void ShowProducts()
-    {
-        Console.WriteLine("Товары доступные к покупке:");
-        for (int i = 0; i < Items.Count; i++)
+        if (_items.Count > minimumNumberItems)
         {
-            Console.WriteLine(Items[i].Name + " - " + Items[i].Price);
-        }
-    }
+            Console.WriteLine("Товары доступные к покупке:");
 
-    public void SellProduct(Item item, Player player)
-    {
-        if (Items.Contains(item))
-        {
-            if (player.Balance >= item.Price)
+            for (int i = 0; i < _items.Count; i++)
             {
-                Items.Remove(item);
-                player.Inventory.Add(item);
-                player.Balance -= item.Price;
-
-                Console.WriteLine($"Вы купили: {item.Name}");
-                Console.WriteLine($"Ваш баланс: {player.Balance}");
-            }
-            else
-            {
-                Console.WriteLine("Недостаточно средств на вашем балансе.");
+                Console.WriteLine($"{_items[i].Name} - {_items[i].Price}");
             }
         }
         else
         {
-            Console.WriteLine("Товар уже продан.");
+            Console.WriteLine("Товары закончились.");
         }
     }
 
-    public void ProductSearch(Seller seller, Player player)
+    public void TradeProducts(Player player)
     {
         Console.WriteLine("Введите название товара:");
         string productName = Console.ReadLine();
-        Item product = seller.Items.Find(item => item.Name == productName);
+        Item product = _items.Find(item => item.Name == productName);
 
         if (product != null)
         {
-            seller.SellProduct(product, player);
+            SellProduct(product, player);
         }
         else
         {
             Console.WriteLine("Товар не найден.");
         }
     }
+
+    private void SellProduct(Item item, Player player)
+    {
+        if (player.Balance >= item.Price)
+        {
+            _items.Remove(item);
+            player.Inventory.Add(item);
+            player.Balance -= item.Price;
+
+            Console.WriteLine($"Вы купили: {item.Name}\nВаш баланс: {player.Balance}");
+        }
+        else
+        {
+            Console.WriteLine("Недостаточно средств на вашем балансе.");
+        }
+    }
+
+    private List<Item> _items = new List<Item> {
+        new Item("Хлеб", 35),
+        new Item("Молоко", 65),
+        new Item("Сыр", 170),
+        new Item("Колбаса", 150)};
 }
 
 class Item
 {
-    public string Name { get; set; }
+    public string Name { get; private set; }
 
-    public int Price { get; set; }
+    public int Price { get; private set; }
 
     public Item(string name, int price)
     {
