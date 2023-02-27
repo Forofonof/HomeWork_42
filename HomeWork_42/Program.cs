@@ -2,139 +2,73 @@
 using System.Collections.Generic;
 using System.Linq;
 
-internal class Program
+
+class Program
 {
     static void Main(string[] args)
     {
-        const string ViewInventoryPlayer = "1";
-        const string ShowInventory = "2";
-        const string BuyProduct = "3";
-        const string Exit = "4";
-
         Seller seller = new Seller();
         Player player = new Player("forofonof", 5000);
+        Store store = new Store();
+
+        store.Work(seller, player);
+    }
+}
+
+class Store
+{
+    public void Work(Seller seller, Player player)
+    {
+        const string CommandViewInventory = "1";
+        const string CommandShowInventory = "2";
+        const string CommandBuyProduct = "3";
+        const string CommandExit = "4";
 
         bool isWork = true;
 
         while (isWork)
         {
-            Console.WriteLine($"{ViewInventoryPlayer} - Посмотреть свой инвентарь.\n{ShowInventory} - Показать инвентарь продавца.\n{BuyProduct} - Купить товар.\n{Exit} - Завершить работу.");
+            Console.WriteLine($"{CommandViewInventory} - Посмотреть свой инвентарь.\n{CommandShowInventory} - Показать инвентарь продавца.\n{CommandBuyProduct} - Купить товар.\n{CommandExit} - Завершить работу.");
             string userInput = Console.ReadLine();
 
             switch (userInput)
             {
-                case ViewInventoryPlayer:
+                case CommandViewInventory:
                     player.ViewInventory();
                     break;
-                case ShowInventory:
+
+                case CommandShowInventory:
                     seller.ShowAllProducts();
                     break;
-                case BuyProduct:
-                    seller.TradeProducts(player);
+
+                case CommandBuyProduct:
+                    TradeProduct(seller, player);
                     break;
-                case Exit:
+
+                case CommandExit:
                     isWork= false;
                     break;
+
                 default:
                     Console.WriteLine("Ошибка! Нет такой команды.");
                     break;
             }
         }
     }
-}
 
-class Player
-{
-    public string Name;
-
-    public List<Item> Inventory;
-
-    public int Balance;
-
-    public Player(string name, int balance)
+    private void TradeProduct(Seller seller, Player player)
     {
-        Name = name;
-        Balance = balance;
-        Inventory = new List<Item>();
-    }
-
-    public void ViewInventory()
-    {
-        if (!Inventory.Any())
-        {
-            Console.WriteLine("Ваш инвентарь пустой!");
-            return;
-        }
-        else
-        {
-            Console.WriteLine("Ваш инвентарь:");
-
-            foreach (var item in Inventory)
-            {
-                Console.WriteLine($"Название - {item.Name}. Цена - ${item.Price}.");
-            }
-        }
-    }
-}
-
-class Seller
-{
-    public void ShowAllProducts()
-    {
-        int minimumNumberItems = 0;
-
-        if (_items.Count > minimumNumberItems)
-        {
-            Console.WriteLine("Товары доступные к покупке:");
-
-            for (int i = 0; i < _items.Count; i++)
-            {
-                Console.WriteLine($"{_items[i].Name} - {_items[i].Price}");
-            }
-        }
-        else
-        {
-            Console.WriteLine("Товары закончились.");
-        }
-    }
-
-    public void TradeProducts(Player player)
-    {
-        Console.WriteLine("Введите название товара:");
-        string productName = Console.ReadLine();
-        Item product = _items.Find(item => item.Name == productName);
+        seller.TryGetProduct(out Item product);
 
         if (product != null)
         {
-            SellProduct(product, player);
+            player.BuyProduct(product);
         }
         else
         {
             Console.WriteLine("Товар не найден.");
         }
     }
-
-    private void SellProduct(Item item, Player player)
-    {
-        if (player.Balance >= item.Price)
-        {
-            _items.Remove(item);
-            player.Inventory.Add(item);
-            player.Balance -= item.Price;
-
-            Console.WriteLine($"Вы купили: {item.Name}\nВаш баланс: {player.Balance}");
-        }
-        else
-        {
-            Console.WriteLine("Недостаточно средств на вашем балансе.");
-        }
-    }
-
-    private List<Item> _items = new List<Item> {
-        new Item("Хлеб", 35),
-        new Item("Молоко", 65),
-        new Item("Сыр", 170),
-        new Item("Колбаса", 150)};
 }
 
 class Item
@@ -147,5 +81,98 @@ class Item
     {
         Name = name;
         Price = price;
+    }
+}
+
+class Player
+{
+    private List<Item> Inventory;
+
+    private string Name;
+
+    private int Balance;
+
+    public Player(string name, int balance)
+    {
+        Name = name;
+        Balance = balance;
+        Inventory = new List<Item>();
+    }
+
+    public void ViewInventory()
+    {
+        if (false == Inventory.Any())
+        {
+            Console.WriteLine("Ваш инвентарь пустой!");
+            return;
+        }
+        else
+        {
+            Console.WriteLine("Ваш инвентарь:");
+
+            foreach (var item in Inventory)
+            {
+                Console.WriteLine($"{item.Name}. Цена - {item.Price}.");
+            }
+        }
+    }
+
+    public void BuyProduct(Item item)
+    {
+        if (Balance >= item.Price)
+        {
+            Inventory.Add(item);
+            Balance -= item.Price;
+
+            Console.WriteLine($"Вы купили: {item.Name}\nВаш баланс: {Balance}");
+        }
+        else
+        {
+            Console.WriteLine("Недостаточно средств на вашем балансе.");
+        }
+    }
+}
+
+class Seller
+{
+    private List<Item> _items = new List<Item>();
+
+    public Seller()
+    {
+        _items.Add(new Item("Хлеб", 35));
+        _items.Add(new Item("Сыр", 65));
+        _items.Add(new Item("Молоко", 75));
+        _items.Add(new Item("Колбаса", 150));
+    }
+
+    public void ShowAllProducts()
+    {
+        int minimumNumberItems = 0;
+
+        if (_items.Count > minimumNumberItems)
+        {
+            Console.WriteLine("Товары доступные к покупке:");
+
+            for (int i = 0; i < _items.Count; i++)
+            {
+                Console.WriteLine($"{_items[i].Name}. Цена - {_items[i].Price}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Товары закончились.");
+        }
+    }
+
+    public bool TryGetProduct(out Item product)
+    {
+        product = null;
+
+        Console.WriteLine("Введите название товара:");
+        string productName = Console.ReadLine();
+        product = _items.Find(item => item.Name == productName);
+        _items.Remove(product);
+
+        return true;
     }
 }
