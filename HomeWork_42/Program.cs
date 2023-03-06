@@ -6,8 +6,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Seller seller = new Seller();
-        Player player = new Player(5000);
+        Seller seller = new Seller(4000);
+        Player player = new Player(1500);
         Store store = new Store();
 
         store.Work(seller, player);
@@ -72,15 +72,16 @@ class Store
 
 class Item
 {
-    public string Name { get; private set; }
-
-    public int Price { get; private set; }
-
     public Item(string name, int price)
     {
         Name = name;
         Price = price;
     }
+
+    public string Name { get; private set; }
+
+    public int Price { get; private set; }
+
 }
 
 class Person
@@ -98,7 +99,7 @@ class Person
         }
         else
         {
-            Console.WriteLine("Товары: ");
+            Console.WriteLine($"Деньги: {Balance}. Товары: ");
 
             foreach (var item in _inventory)
             {
@@ -134,8 +135,10 @@ class Player : Person
 
 class Seller : Person
 {
-    public Seller()
+    public Seller(int balance)
     {
+        Balance = balance;
+
         _inventory = new List<Item>
             {
                 new Item("Хлеб", 35),
@@ -153,6 +156,7 @@ class Seller : Person
         string productName = Console.ReadLine();
         product = _inventory.Find(item => item.Name == productName);
         _inventory.Remove(product);
+        Balance += product.Price;
 
         return true;
     }
