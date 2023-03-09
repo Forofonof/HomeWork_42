@@ -6,17 +6,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        Seller seller = new Seller(4000);
-        Player player = new Player(1500);
+        Seller seller = new Seller(400);
+        Player player = new Player(100);
+        Item item = new Item(null, 0);
         Store store = new Store();
+        Menu menu = new Menu();
 
-        store.Work(seller, player);
+        menu.Work(seller, player, item, store);
     }
 }
 
-class Store
+class Menu
 {
-    public void Work(Seller seller, Player player)
+    public void Work(Seller seller, Player player, Item item, Store store)
     {
         const string CommandViewInventory = "1";
         const string CommandShowInventory = "2";
@@ -41,11 +43,11 @@ class Store
                     break;
 
                 case CommandBuyProduct:
-                    TradeProduct(seller, player);
+                    store.TradeProduct(seller, player, item);
                     break;
 
                 case CommandExit:
-                    isWork= false;
+                    isWork = false;
                     break;
 
                 default:
@@ -54,34 +56,30 @@ class Store
             }
         }
     }
+}
 
-    private void TradeProduct(Seller seller, Player player)
+class Store
+{
+    public void TradeProduct(Seller seller, Player player, Item item)
     {
-        seller.TryGetProduct(out Item product);
-
-        if (product != null)
+        if (seller.TryGetProduct(out Item product) == true)
         {
-            player.BuyProduct(product);
+            if (player.Balance >= product.Price)
+            {
+                seller.SellProduct(product);
+                player.BuyProduct(product);
+            }
+            else
+            {
+                Console.WriteLine($"У вас недостаточно денег. Ваш баланс: {player.Balance}");
+                Console.WriteLine($"{product.Name}. Стоит: {product.Price}");
+            }
         }
         else
         {
-            Console.WriteLine("Товар не найден.");
+            Console.WriteLine("Товар не найден."); 
         }
     }
-}
-
-class Item
-{
-    public Item(string name, int price)
-    {
-        Name = name;
-        Price = price;
-    }
-
-    public string Name { get; private set; }
-
-    public int Price { get; private set; }
-
 }
 
 class Person
@@ -119,17 +117,10 @@ class Player : Person
 
     public void BuyProduct(Item item)
     {
-        if (Balance >= item.Price)
-        {
-            _inventory.Add(item);
-            Balance -= item.Price;
+        _inventory.Add(item);
+        Balance -= item.Price;
 
-            Console.WriteLine($"Вы купили: {item.Name}\nВаш баланс: {Balance}");
-        }
-        else
-        {
-            Console.WriteLine("Недостаточно средств на вашем балансе.");
-        }
+        Console.WriteLine($"Вы купили: {item.Name}. Ваш баланс: {Balance}.");
     }
 }
 
@@ -140,24 +131,43 @@ class Seller : Person
         Balance = balance;
 
         _inventory = new List<Item>
-            {
-                new Item("Хлеб", 35),
-                new Item("Сыр", 65),
-                new Item("Молоко", 75),
-                new Item("Колбаса", 150)
-            };
+        {
+             new Item("Хлеб", 35),
+             new Item("Сыр", 65),
+             new Item("Молоко", 75),
+             new Item("Колбаса", 150)
+        };
     }
 
     public bool TryGetProduct(out Item product)
     {
-        product = null;
-
         Console.WriteLine("Введите название товара:");
         string productName = Console.ReadLine();
+
         product = _inventory.Find(item => item.Name == productName);
-        _inventory.Remove(product);
-        Balance += product.Price;
+
+        if (product == null) return false;
 
         return true;
     }
+
+    public void SellProduct(Item product)
+    {
+        _inventory.Remove(product);
+        Balance += product.Price;
+    }
+}
+
+class Item
+{
+    public Item(string name, int price)
+    {
+        Name = name;
+        Price = price;
+    }
+
+    public string Name { get; private set; }
+
+    public int Price { get; private set; }
+
 }
